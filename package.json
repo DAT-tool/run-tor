@@ -1,0 +1,11 @@
+{
+  "name": "run-tor",
+  "version": "1.0.0",
+  "main": ".dat/play.js",
+  "dependencies": {
+    "dat": "^0.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.6"
+  }
+}
