@@ -2,8 +2,11 @@ import { platform } from 'os';
 import { error, info, successStatus } from "@dat/lib/log";
 import * as OS from '@dat/lib/os';
 import * as APT from '@dat/lib/apt';
+import * as IN from '@dat/lib/input';
 import * as SYS from '@dat/lib/systemctl';
-
+/******************************* */
+let sudoPassword = '';
+/******************************* */
 export async function main(): Promise<number> {
    info('checking for install Tor ...');
    if (!await OS.checkCommand('tor --version', 'Tor version')) {
@@ -47,13 +50,22 @@ async function restartTor() {
       error('can not run tor service by systemctl');
       return false;
    }
+   // =>get sudo password, from argv
+   if (OS.ScriptArgvs.length > 0 ) {
+      sudoPassword = OS.ScriptArgvs[0];
+      console.log(sudoPassword)
+   }
+   // =>if not set, get sudo password
+   if (!sudoPassword || sudoPassword.length === 0) {
+      sudoPassword = await IN.password('Enter Sudo Password:');
+   }
    // =>restart tor service
-   await SYS.restart('tor@default', { sudoPassword: '4420790431aA+' });
+   await SYS.restart('tor@default', { sudoPassword });
    let lastPercent = -1;
    // =>get status of tor service every 1s
    for (let i = 0; i < 20; i++) {
       let done = false;
-      let status = await SYS.status('tor@default', { sudoPassword: '4420790431aA+' });
+      let status = await SYS.status('tor@default', { sudoPassword });
       // =>check for 100%
       for (const line of status.output.split('\n')) {
          // =>get current status of tor
