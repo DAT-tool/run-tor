@@ -2,6 +2,7 @@ import { platform } from 'os';
 import { error, info, successStatus } from "@dat/lib/log";
 import * as OS from '@dat/lib/os';
 import * as APT from '@dat/lib/apt';
+import * as ENV from '@dat/lib/env';
 import * as IN from '@dat/lib/input';
 import * as SYS from '@dat/lib/systemctl';
 /******************************* */
@@ -57,7 +58,13 @@ async function restartTor() {
    }
    // =>if not set, get sudo password
    if (!sudoPassword || sudoPassword.length === 0) {
-      sudoPassword = await IN.password('Enter Sudo Password:');
+      // =>get from env
+      if (await ENV.has('sudopass')){
+         sudoPassword = await ENV.load<string>('sudopass');
+      } else {
+         sudoPassword = await IN.password('Enter Sudo Password:');
+         await ENV.save('sudopass', sudoPassword);
+      }
    }
    // =>restart tor service
    await SYS.restart('tor@default', { sudoPassword });
